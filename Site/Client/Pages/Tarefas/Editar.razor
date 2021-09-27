@@ -1,0 +1,25 @@
+﻿@page "/tarefas/editar/{id:int}"
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<h3>Editar Tarefa</h3>
+
+<FormTarefas Tarefa="@tarefa" ButtonText="Atualizar" OnValidSubmit="@EditarTarefa"></FormTarefas>
+
+
+
+@code {
+    Tarefa tarefa = new Tarefa();
+
+    [Parameter] public int id { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        tarefa = await http.GetFromJsonAsync<Tarefa>($"api/tarefa/{id}");
+    }
+
+    async Task EditarTarefa(){
+        await http.PutAsJsonAsync("api/tarefa", tarefa);
+        navigation.NavigateTo("tarefas/lista");
+    }
+}

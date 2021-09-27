@@ -1,0 +1,105 @@
+@page "/tarefas/lista"
+@page "/tarefas"
+@page "/concluidos"
+@page "/nconcluidos"
+@inject HttpClient http
+
+
+<h3>Lista de Pendências</h3>
+
+<div>
+    <a href="tarefas/criar" class="btn btn-success">Criar</a>
+</div>
+
+<div>
+    @if (tarefas == null)
+    {
+        <text>Carregando...</text>
+    }
+    else if (tarefas.Count == 0)
+    {
+        <text>Não há nenhuma lista pendente...</text>
+
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Concluida</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @functions {List<Tarefa> concluidos = new List<Tarefa>(); List<Tarefa> nconcluidos = new List<Tarefa>();}
+
+
+                @foreach (var tarefa in tarefas)
+                {
+                    @if (!tarefa.Concluida)
+                    {
+                        <tr>
+                            <td>@tarefa.Id</td>
+                            <td>@tarefa.DataCriacao.ToShortDateString()</td>
+                            <td>@tarefa.Descricao</td>
+                            <td><input type="checkbox" @bind="tarefa.Concluida" @onfocus="@(() => SalvarTarefa(tarefa.Id))" /></td>
+                            <td>
+                                <a class="btn btn-success" href="tarefas/editar/@tarefa.Id">Editar</a>
+                                <button class="btn btn-danger" @onclick="@(() => ExcluirTarefa(tarefa.Id))">Excluir</button>
+                            </td>
+                        </tr>   
+                    }
+                }
+                @foreach (var tarefa2 in tarefas)
+                {              
+                    @if(tarefa2.Concluida)
+                    {
+                        <tr>
+                            <td>@tarefa2.Id</td>
+                            <td>@tarefa2.DataCriacao.ToShortDateString()</td>
+                            <td>@tarefa2.Descricao</td>
+                            <td><input type="checkbox" @bind="tarefa2.Concluida" @onfocus="@(() => SalvarTarefa(tarefa2.Id))" /></td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="@(() => ExcluirTarefa(tarefa2.Id))">Excluir</button>                              
+                            </td>
+                        </tr>
+                    }               
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+
+
+
+@code{
+    List<Tarefa> tarefas = new List<Tarefa>();
+    Tarefa Tarefa = new Tarefa();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTarefas();
+
+    }
+
+    async Task LoadTarefas()
+    {
+        tarefas = await http.GetFromJsonAsync<List<Tarefa>>("api/tarefa");
+    }
+
+    async Task ExcluirTarefa(int id)
+    {
+        await http.DeleteAsync($"api/tarefa/{id}");
+        await LoadTarefas();
+    }
+    async Task SalvarTarefa(int id)
+    {
+        Tarefa = await http.GetFromJsonAsync<Tarefa>($"api/tarefa/{id}");
+        await http.PutAsJsonAsync("api/tarefa", Tarefa);
+
+    }
+}
+

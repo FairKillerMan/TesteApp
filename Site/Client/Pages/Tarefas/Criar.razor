@@ -1,0 +1,17 @@
+﻿@page "/tarefas/criar"
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<h2>Criar uma pendência</h2>
+
+<FormTarefas Tarefa="@tarefa" ButtonText="Adicionar" OnValidSubmit="@CriarTarefa"></FormTarefas>
+
+@code {
+    Tarefa tarefa = new Tarefa();
+
+    async Task CriarTarefa()
+    {
+        await http.PostAsJsonAsync("api/tarefa", tarefa);
+        navigation.NavigateTo("tarefas/lista");
+    }
+}
